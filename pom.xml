@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>tekleo</groupId>
+    <artifactId>image-classifier</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Image Classifier</name>
+    <description>
+        Neural network for image classification
+
+        We use CIFAR-10 dataset, it contains 10 classes with 6 000 images per class.
+        Total of 60 000 images. Each image is in RGB and 32x32 pixels.
+        http://www.cs.utoronto.ca/~kriz/cifar.html
+    </description>
+
+    <developers>
+        <developer>
+            <name>Leo Ertuna</name>
+            <email>leo.ertuna@gmail.com</email>
+        </developer>
+    </developers>
+
+    <!-- Properties -->
+    <properties>
+        <java.version>1.8</java.version>
+        <source.version>${java.version}</source.version>
+        <target.version>${java.version}</target.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <junit.version>4.12</junit.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+
+        <nd4j.version>0.9.1</nd4j.version>
+        <dl4j.version>0.9.1</dl4j.version>
+    </properties>
+
+    <!-- Dependencies -->
+    <dependencies>
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ND4J backend. Is needed in every DL4J project. Normally define artifactId as either "nd4j-native-platform" or "nd4j-cuda-7.5-platform" -->
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-cuda-8.0-platform</artifactId>
+            <version>${nd4j.version}</version>
+        </dependency>
+
+        <!-- Core DL4J functionality -->
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>${dl4j.version}</version>
+        </dependency>
+
+        <!-- Cuda DL4J functionality -->
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-cuda-8.0</artifactId>
+            <version>${dl4j.version}</version>
+        </dependency>
+
+        <!-- DL4J UI -->
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-ui_2.10</artifactId>
+            <version>${dl4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <!-- Build -->
+    <build>
+        <finalName>Image Classifier</finalName>
+
+        <plugins>
+            <!-- Maven Compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
