@@ -54,7 +54,7 @@ public class CifarDataset {
     private ImageRecordReader testDataImageRecordReader;
     private RecordReaderDataSetIterator trainDataSetIterator;
     private RecordReaderDataSetIterator testDataSetIterator;
-    private ImagePreProcessingScaler imagePreProcessingScaler;
+    //private ImagePreProcessingScaler imagePreProcessingScaler;
 
     public CifarDataset() {
         this.init();
@@ -89,12 +89,12 @@ public class CifarDataset {
             trainDataSetIterator = initRecordReaderDataSetIterator(trainDataImageRecordReader, BATCH_SIZE, LABEL_INDEX, IMAGE_CLASSES);
             testDataSetIterator = initRecordReaderDataSetIterator(testDataImageRecordReader, BATCH_SIZE, LABEL_INDEX, IMAGE_CLASSES);
 
-            // Init data normalization, fit data into it, save this preprocessor into data set iterators
-            imagePreProcessingScaler = initImagePreProcessingScaler(NORM_MIN, NORM_MAX);
-            imagePreProcessingScaler.fit(trainDataSetIterator);
-            imagePreProcessingScaler.fit(testDataSetIterator);
-            trainDataSetIterator.setPreProcessor(imagePreProcessingScaler);
-            testDataSetIterator.setPreProcessor(imagePreProcessingScaler);
+//            // Init data normalization, fit data into it, save this preprocessor into data set iterators
+//            imagePreProcessingScaler = initImagePreProcessingScaler(NORM_MIN, NORM_MAX);
+//            imagePreProcessingScaler.fit(trainDataSetIterator);
+//            imagePreProcessingScaler.fit(testDataSetIterator);
+//            trainDataSetIterator.setPreProcessor(imagePreProcessingScaler);
+//            testDataSetIterator.setPreProcessor(imagePreProcessingScaler);
         }
 
         catch (CifarDatasetInitException e) {
