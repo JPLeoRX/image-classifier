@@ -16,6 +16,25 @@ import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
+ * Core CNN model
+ *
+ * We utilize doubled convolution-downsample architecture with regular MLP attached to the end of it
+ * CONV (INPUT) - DOWNSAMPLE - CONV - DOWNSAMPLE - DENSE - DENSE (OUTPUT)
+ *
+ * Convolutional filter is 3 x 3 with shift (stride) of 1
+ * Downsampling is a 2 x 2 kernel with shift (stride) of 2
+ *
+ * TODO possibly add more layers
+ * TODO implement some cross-validation training
+ * TODO print out some sort of training set score for each epoch
+ * TODO move neural net config into a separate file
+ *
+ * With current setting we achieve the following scores:
+ *  Accuracy:        0.6528
+ *  Precision:       0.6574
+ *  Recall:          0.6528
+ *  F1 Score:        0.6531
+ *
  * @author Leo Ertuna
  * @since 01.04.2018 02:29
  */
@@ -33,7 +52,7 @@ public class CifarModel {
     private static final int CONVOLUTION_POOL_SHIFT = 2;
 
     private static final int LEARNING_NUMBER_OF_ITERATIONS = 1;
-    private static final int LEARNING_NUMBER_OF_EPOCHS = 2;
+    private static final int LEARNING_NUMBER_OF_EPOCHS = 20;
 
     private DataSetIterator trainSet;
     private DataSetIterator testSet;
@@ -137,10 +156,11 @@ public class CifarModel {
         for (int i = 0; i < LEARNING_NUMBER_OF_EPOCHS; i++) {
             network.fit(trainSet);
             System.out.println("Completed epoch " + i);
-
-            Evaluation evaluation = network.evaluate(testSet);
-            System.out.println(evaluation.stats());
-            testSet.reset();
         }
+    }
+
+    public void test() {
+        Evaluation evaluation = network.evaluate(testSet);
+        System.out.println(evaluation.stats());
     }
 }

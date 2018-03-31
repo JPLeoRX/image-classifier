@@ -34,7 +34,7 @@ public class CifarDataset {
     private static final int TEST_SPLIT_PERCENTAGE = 20;
     private static final int TRAIN_SPLIT_INDEX = 0;
     private static final int TEST_SPLIT_INDEX = 1;
-    private static final int BATCH_SIZE = 1;
+    private static final int BATCH_SIZE = 600;
     private static final int LABEL_INDEX = 1;
     private static final double NORM_MIN = 0;
     private static final double NORM_MAX = 1;
@@ -54,7 +54,7 @@ public class CifarDataset {
     private ImageRecordReader testDataImageRecordReader;
     private RecordReaderDataSetIterator trainDataSetIterator;
     private RecordReaderDataSetIterator testDataSetIterator;
-    //private ImagePreProcessingScaler imagePreProcessingScaler;
+    private ImagePreProcessingScaler imagePreProcessingScaler;
 
     public CifarDataset() {
         this.init();
@@ -89,12 +89,12 @@ public class CifarDataset {
             trainDataSetIterator = initRecordReaderDataSetIterator(trainDataImageRecordReader, BATCH_SIZE, LABEL_INDEX, IMAGE_CLASSES);
             testDataSetIterator = initRecordReaderDataSetIterator(testDataImageRecordReader, BATCH_SIZE, LABEL_INDEX, IMAGE_CLASSES);
 
-//            // Init data normalization, fit data into it, save this preprocessor into data set iterators
-//            imagePreProcessingScaler = initImagePreProcessingScaler(NORM_MIN, NORM_MAX);
-//            imagePreProcessingScaler.fit(trainDataSetIterator);
-//            imagePreProcessingScaler.fit(testDataSetIterator);
-//            trainDataSetIterator.setPreProcessor(imagePreProcessingScaler);
-//            testDataSetIterator.setPreProcessor(imagePreProcessingScaler);
+            // Init data normalization, fit data into it, save this preprocessor into data set iterators
+            imagePreProcessingScaler = initImagePreProcessingScaler(NORM_MIN, NORM_MAX);
+            imagePreProcessingScaler.fit(trainDataSetIterator);
+            imagePreProcessingScaler.fit(testDataSetIterator);
+            trainDataSetIterator.setPreProcessor(imagePreProcessingScaler);
+            testDataSetIterator.setPreProcessor(imagePreProcessingScaler);
         }
 
         catch (CifarDatasetInitException e) {

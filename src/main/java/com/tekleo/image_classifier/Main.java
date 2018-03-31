@@ -13,5 +13,6 @@ public class Main {
         CifarDataset cifarDataset = new CifarDataset();
         CifarModel cifarModel = new CifarModel(cifarDataset.getTrainDataSetIterator(), cifarDataset.getTestDataSetIterator());
         cifarModel.train();
+        cifarModel.test();
     }
 }
