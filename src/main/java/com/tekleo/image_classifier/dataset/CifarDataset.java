@@ -34,7 +34,7 @@ public class CifarDataset {
     private static final int TEST_SPLIT_PERCENTAGE = 20;
     private static final int TRAIN_SPLIT_INDEX = 0;
     private static final int TEST_SPLIT_INDEX = 1;
-    private static final int BATCH_SIZE = 10;
+    private static final int BATCH_SIZE = 1;
     private static final int LABEL_INDEX = 1;
     private static final double NORM_MIN = 0;
     private static final double NORM_MAX = 1;
