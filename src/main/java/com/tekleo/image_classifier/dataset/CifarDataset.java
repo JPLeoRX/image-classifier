@@ -5,8 +5,12 @@ import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
 import org.datavec.api.split.InputSplit;
 import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.image.transform.FlipImageTransform;
+import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.MultiImageTransform;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.iterator.KFoldIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 
 import java.io.File;
@@ -34,7 +38,7 @@ public class CifarDataset {
     private static final int TEST_SPLIT_PERCENTAGE = 20;
     private static final int TRAIN_SPLIT_INDEX = 0;
     private static final int TEST_SPLIT_INDEX = 1;
-    private static final int BATCH_SIZE = 600;
+    private static final int BATCH_SIZE = 240;
     private static final int LABEL_INDEX = 1;
     private static final double NORM_MIN = 0;
     private static final double NORM_MAX = 1;

@@ -4,16 +4,17 @@ import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
-import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
+import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Core CNN model
@@ -30,10 +31,19 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
  * TODO move neural net config into a separate file
  *
  * With current setting we achieve the following scores:
- *  Accuracy:        0.6528
- *  Precision:       0.6574
- *  Recall:          0.6528
- *  F1 Score:        0.6531
+ *  Accuracy:        0.6897
+ *  Precision:       0.6962
+ *  Recall:          0.6897
+ *  F1 Score:        0.6915
+ *
+ * Due to CUDA support in DL4J we can utilize GPU training:
+ * GPU load in training varies from 65% to 95%
+ * While CPU load alternates between 30% and 50%
+ * Current model consumes about 1.4 GB of GPU memory
+ *
+ * This is achieved on i7, gtx1050 (4 GB) and 16 GB ram
+ *
+ * 98.70/69.15
  *
  * @author Leo Ertuna
  * @since 01.04.2018 02:29
@@ -45,6 +55,7 @@ public class CifarModel {
     private static final int IMAGE_CLASSES = 10;
 
     private static final int NETWORK_SEED = 666;
+    private static final String NETWORK_FILEPATH = "CIFAR-10 Network.zip";
 
     private static final int CONVOLUTION_FILTER_SIZE = 3;
     private static final int CONVOLUTION_FILTER_SHIFT = 1;
@@ -66,77 +77,71 @@ public class CifarModel {
         this.initNetwork();
     }
 
+    private static Layer convLayer(int nIn, int nOut) {
+        return new ConvolutionLayer.Builder()
+                .kernelSize(CONVOLUTION_FILTER_SIZE, CONVOLUTION_FILTER_SIZE)
+                .stride(CONVOLUTION_FILTER_SHIFT, CONVOLUTION_FILTER_SHIFT)
+                .nIn(nIn)
+                .nOut(nOut)
+                .activation(Activation.IDENTITY)
+                .build();
+    }
+
+    private static Layer convLayer(int nOut) {
+        return new ConvolutionLayer.Builder()
+                .kernelSize(CONVOLUTION_FILTER_SIZE, CONVOLUTION_FILTER_SIZE)
+                .stride(CONVOLUTION_FILTER_SHIFT, CONVOLUTION_FILTER_SHIFT)
+                .nOut(nOut)
+                .activation(Activation.IDENTITY)
+                .build();
+    }
+
+    private static Layer downsamplingLayer() {
+        return new SubsamplingLayer.Builder()
+                .poolingType(SubsamplingLayer.PoolingType.MAX)
+                .kernelSize(CONVOLUTION_POOL_SIZE, CONVOLUTION_POOL_SIZE)
+                .stride(CONVOLUTION_POOL_SHIFT, CONVOLUTION_POOL_SHIFT)
+                .build();
+    }
+
     private void initConfig() {
         configuration = new NeuralNetConfiguration.Builder()
                 .seed(NETWORK_SEED)
                 .iterations(LEARNING_NUMBER_OF_ITERATIONS)
 
-                .regularization(true)
-                .l2(1e-3)
+                .regularization(true).l2(1e-4)
 
-                .learningRate(1e-2)
-                .learningRateDecayPolicy(LearningRatePolicy.Score)
-                .lrPolicyDecayRate(1e-3)
+                .learningRate(1e-2).learningRateDecayPolicy(LearningRatePolicy.Score).lrPolicyDecayRate(1e-3)
 
-                .weightInit(WeightInit.XAVIER_UNIFORM)
+                .weightInit(WeightInit.XAVIER)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new Nesterovs(0.9))
 
                 .list()
 
 
-                .layer(0, new ConvolutionLayer.Builder()
-                        .kernelSize(CONVOLUTION_FILTER_SIZE, CONVOLUTION_FILTER_SIZE)
-                        .stride(CONVOLUTION_FILTER_SHIFT, CONVOLUTION_FILTER_SHIFT)
-                        .nIn(IMAGE_CHANNELS)
-                        .nOut(12)
-                        .activation(Activation.IDENTITY)
-                        .build())
+                // After layer 0 we have: 32 x 32 x 10
+                .layer(0, convLayer(IMAGE_CHANNELS, 64))
 
-                /*
-                 * Layer 0 is a conv layer
-                 * After layer 0 we have: 32 x 32 x 12
-                 */
+                // After layer 1 we have: 16 x 16 x 10
+                .layer(1, downsamplingLayer())
 
-                .layer(1, new SubsamplingLayer.Builder()
-                        .poolingType(SubsamplingLayer.PoolingType.MAX)
-                        .kernelSize(CONVOLUTION_POOL_SIZE, CONVOLUTION_POOL_SIZE)
-                        .stride(CONVOLUTION_POOL_SHIFT, CONVOLUTION_POOL_SHIFT)
-                        .build())
+                // After layer 2 we have: 16 x 16 x 20
+                .layer(2, convLayer(128))
 
-                /*
-                 * Layer 1 is a downsampling layer
-                 * After layer 1 we have: 16 x 16 x 12
-                 */
+                // After layer 3 we have 8 x 8 x 20
+                .layer(3, downsamplingLayer())
 
-                .layer(2, new ConvolutionLayer.Builder()
-                        .kernelSize(CONVOLUTION_FILTER_SIZE, CONVOLUTION_FILTER_SIZE)
-                        .stride(CONVOLUTION_FILTER_SHIFT, CONVOLUTION_FILTER_SHIFT)
-                        .nOut(24)
-                        .activation(Activation.IDENTITY)
-                        .build())
-
-                /*
-                 * Layer 2 is a conv layer
-                 * After layer 2 we have: 16 x 16 x 24
-                 */
-
-                .layer(3, new SubsamplingLayer.Builder()
-                        .poolingType(SubsamplingLayer.PoolingType.MAX)
-                        .kernelSize(CONVOLUTION_POOL_SIZE, CONVOLUTION_POOL_SIZE)
-                        .stride(CONVOLUTION_POOL_SHIFT, CONVOLUTION_POOL_SHIFT)
-                        .build())
-
-                /*
-                 * Layer 3 is a downsampling layer
-                 * After layer 3 we have 8 x 8 x 24
-                 */
-
+                // MLP
                 .layer(4, new DenseLayer.Builder()
+                        .activation(Activation.RELU)
+                        .nOut(2400)
+                        .build())
+                .layer(5, new DenseLayer.Builder()
                         .activation(Activation.RELU)
                         .nOut(600)
                         .build())
-                .layer(5, new OutputLayer.Builder()
+                .layer(6, new OutputLayer.Builder()
                         .lossFunction(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(IMAGE_CLASSES)
                         .activation(Activation.SOFTMAX)
@@ -160,7 +165,20 @@ public class CifarModel {
     }
 
     public void test() {
-        Evaluation evaluation = network.evaluate(testSet);
-        System.out.println(evaluation.stats());
+        Evaluation evaluationOnTrain = network.evaluate(trainSet);
+        System.out.println(evaluationOnTrain.stats());
+
+        Evaluation evaluationOnTest = network.evaluate(testSet);
+        System.out.println(evaluationOnTest.stats());
+    }
+
+    public void save() throws IOException {
+        File locationToSave = new File(NETWORK_FILEPATH);
+        ModelSerializer.writeModel(network, locationToSave, true);
+    }
+
+    public void load() throws IOException {
+        File locationToSave = new File(NETWORK_FILEPATH);
+        network = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
     }
 }
