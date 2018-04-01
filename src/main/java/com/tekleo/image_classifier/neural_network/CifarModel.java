@@ -31,10 +31,10 @@ import java.io.IOException;
  * TODO move neural net config into a separate file
  *
  * With current setting we achieve the following scores:
- *  Accuracy:        0.6897
- *  Precision:       0.6962
- *  Recall:          0.6897
- *  F1 Score:        0.6915
+ *  Accuracy:        0.7005
+ *  Precision:       0.7076
+ *  Recall:          0.7005
+ *  F1 Score:        0.7021
  *
  * Due to CUDA support in DL4J we can utilize GPU training:
  * GPU load in training varies from 65% to 95%
@@ -43,7 +43,7 @@ import java.io.IOException;
  *
  * This is achieved on i7, gtx1050 (4 GB) and 16 GB ram
  *
- * 98.70/69.15
+ * 99.48/69.15
  *
  * @author Leo Ertuna
  * @since 01.04.2018 02:29
@@ -135,11 +135,11 @@ public class CifarModel {
                 // MLP
                 .layer(4, new DenseLayer.Builder()
                         .activation(Activation.RELU)
-                        .nOut(2400)
+                        .nOut(4800)
                         .build())
                 .layer(5, new DenseLayer.Builder()
                         .activation(Activation.RELU)
-                        .nOut(600)
+                        .nOut(1200)
                         .build())
                 .layer(6, new OutputLayer.Builder()
                         .lossFunction(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
